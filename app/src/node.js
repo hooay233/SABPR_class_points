@@ -19,6 +19,7 @@ const DATA_DIR = process.env.DATA_DIR || path.join(PROJECT_ROOT, 'data');
 const SYNC_SECRET = process.env.SYNC_SECRET || '';
 const CF_PEER_URL = process.env.CF_PEER_URL || '';
 const WEB_DIR = path.join(PROJECT_ROOT, 'web');
+const DESKTOP_TOKEN = process.env.DESKTOP_TOKEN || '';
 
 // data/config.json 可覆盖环境变量
 let fileCfg = {};
@@ -160,7 +161,7 @@ async function migrateV47(db) {
 
 // schema.sql 已通过 INSERT OR IGNORE 预置 teacher/admin 账户与默认配置，无需再次 seed
 
-const app = createApp({ db, storage, origin: 'node', syncSecret, peerUrl });
+const app = createApp({ db, storage, origin: 'node', syncSecret, peerUrl, desktopToken: DESKTOP_TOKEN });
 
 // 静态资源：/assets、*.html、/admin/index.html
 const pageMap = {

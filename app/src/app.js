@@ -20,13 +20,27 @@ import { snapshotRoutes } from './routes/snapshot.js';
 import { feedbackRoutes } from './routes/feedback.js';
 import { publicRoutes } from './routes/public.js';
 
-export function createApp({ db, storage, origin = 'node', syncSecret = '', peerUrl = '' }) {
+export function createApp({ db, storage, origin = 'node', syncSecret = '', peerUrl = '', desktopToken = '' }) {
   const app = new Hono();
   app.use('/api/*', cors({
     origin: '*',
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization', 'X-Device-Token', 'X-Sync-Key'],
+    allowHeaders: ['Content-Type', 'Authorization', 'X-Device-Token', 'X-Sync-Key', 'X-Desktop-Token'],
   }));
+
+  // 桌面端本地令牌：桌面壳启动内嵌服务时设置。未设置时行为与上游完全一致。
+  // 例外：主备同步与文件通道使用 X-Sync-Key 鉴权，不能要求桌面令牌。
+  if (desktopToken) {
+    app.use('/api/*', async (c, next) => {
+      if (c.req.method === 'OPTIONS') return next();
+      const p = c.req.path;
+      if (p.startsWith('/api/sync') || p.startsWith('/api/file/')) return next();
+      if (c.req.header('X-Desktop-Token') !== desktopToken) {
+        return c.json({ ok: false, error: 'desktop token required' }, 401);
+      }
+      await next();
+    });
+  }
 
   app.use('/api/*', async (c, next) => {
     c.set('db', db);

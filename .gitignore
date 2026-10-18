@@ -50,3 +50,12 @@ notify-desktop/
 # 系统
 .DS_Store
 Thumbs.db
+
+# 桌面端构建缓存与产物
+.cache/
+.scratch/
+release/
+native/
+build/android/
+android/debug.keystore
+desktop/**/*.map
